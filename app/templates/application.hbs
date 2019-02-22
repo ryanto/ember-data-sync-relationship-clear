@@ -1,5 +1,137 @@
-{{!-- The following component displays Ember's default welcome message. --}}
-{{welcome-page}}
-{{!-- Feel free to remove this! --}}
+<div class="w-700px p-5">
+  <h1 class="leading-tight mb-3">
+    Sync relationship known-to-be-empty
+  </h1>
 
-{{outlet}}
+  <p class="leading-normal mb-3">
+    When a model is pushed into the store with an included sync relationship
+    Ember Data properly updates and tracks the relationship. However, if
+    the same model is later pushed into the store without the included
+    relationship, then the relationship link between the two models is
+    lost.
+  </p>
+
+  <p class="leading-normal mb-4">
+    To see the behavior, push the payload with includes into the store
+    and then push the payload without includes. You'll see that the
+    relationship gets destroyed as well as the `known-to-be-empty`
+    warning in the console.
+  </p>
+
+  <h3 class="leading-tight mb-4">
+    The post model
+  </h3>
+
+  <div class="bg-grey-lightest p-4 mb-5">
+    <pre>
+  import DS from 'ember-data';
+
+  export default DS.Model.extend({
+    title: DS.attr('string'),
+
+    comments: DS.hasMany('comment', { async: false })
+  });
+    </pre>
+  </div>
+
+  <h3 class="leading-tight mb-3">
+    The store
+  </h3>
+
+  <div class="bg-yellow-lighter p-4 mb-5">
+    <div class="mb-4">
+      Post(id: 1) is in the store: {{if model 'YES' 'NO'}}
+    </div>
+
+    <div>
+      Post(id: 1) has {{if model.comments.length model.comments.length '0'}}
+      {{if (eq model.comments.length 1) 'comment' 'comments'}}.
+    </div>
+  </div>
+
+
+  <div class="flex">
+    <div class="pr-5">
+      <h3 class="mb-3">
+        Payload with includes
+      </h3>
+      <div class="mb-4">
+        <button onclick={{action "pushWithIncludes"}}
+          class="bg-blue text-white p-3 shadow">
+          Push payload with includes
+        </button>
+      </div>
+      <div class="bg-grey-lighter p-3">
+        GET /posts/1?include=comments
+      </div>
+      <pre class="bg-gray-lightest p-3">
+{
+  data: {
+    type: "posts",
+    id: 1,
+    attributes: {
+      title: "This is a test post"
+    },
+    relationships: {
+      comments: {
+        data: [
+          {
+            id: 1,
+            type: "comments"
+          }
+        ],
+        links: {
+          self: "/api/v1/posts/1/relationships/comments",
+          related: "/api/v1/posts/1/comments"
+        }
+      }
+    }
+  },
+  included: [
+    {
+      type: "comments",
+      id: 1,
+      attributes: {
+        title: "first comment!"
+      }
+    }
+  ]
+}
+      </pre>
+    </div>
+
+    <div>
+      <h3 class="mb-3">
+        Payload with includes
+      </h3>
+      <div class="mb-4">
+        <button onclick={{action "pushWithoutIncludes"}}
+          class="bg-blue text-white p-3 shadow">
+          Push payload without includes
+        </button>
+      </div>
+      <div class="bg-grey-lighter p-3">
+        GET /posts/1
+      </div>
+      <pre class="bg-gray-lightest p-3">
+{
+  data: {
+    type: "posts",
+    id: 1,
+    attributes: {
+      title: "This is a test post"
+    },
+    relationships: {
+      comments: {
+        links: {
+          self: "/api/v1/posts/1/relationships/comments",
+          related: "/api/v1/posts/1/comments"
+        }
+      }
+    }
+  }
+}
+      </pre>
+    </div>
+  </div>
+</div>
